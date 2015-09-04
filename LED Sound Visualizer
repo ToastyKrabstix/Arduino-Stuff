@@ -1,0 +1,59 @@
+
+
+const int sampleWindow = 30; //30milliseconds of sound analysis time
+unsigned int sample;
+
+void setup() 
+{
+  int i;
+  for(i = 2; i < 17; i++){
+   pinMode(i, OUTPUT); 
+  }
+  analogReference(EXTERNAL);
+   Serial.begin(9600);
+}
+
+
+void loop() 
+{
+   unsigned long startMillis= millis();  // Start of sample window
+   unsigned int peakToPeak = 0;   // peak-to-peak level
+
+   unsigned int signalMax = 0;
+   unsigned int signalMin = 1024;
+   int i,j,k;
+   // collect data for 50 mS
+   while (millis() - startMillis < sampleWindow)
+   {
+      sample = analogRead(5);
+      if (sample < 1024)  // toss out spurious readings
+      {
+         if (sample > signalMax)
+         {
+            signalMax = sample;  // save just the max levels
+         }
+         else if (sample < signalMin)
+         {
+            signalMin = sample;  // save just the min levels
+         }
+      }
+   }
+   peakToPeak = signalMax - signalMin;  // max - min = peak-peak amplitude
+   double volts = (peakToPeak * 3.3) / 1024;  // convert to volts
+
+Serial.println(volts); // Check volts
+   
+   for(i = 2; i < 17; i++){ //segment 3.3 into 15 parts
+    if(volts > 0.222*(i-2) && volts <= 0.222*(i+1-2)){ // each segment leading up to 15 is an LED
+      for(j = 2; j < 17; j++){
+        digitalWrite(j, LOW); //turn all LEDs Low
+      }
+      for(k = 2; k < i;k++){
+     digitalWrite(k, HIGH);    //turn all LEDs High
+      }
+      break;
+    }
+   }
+   
+   
+}
